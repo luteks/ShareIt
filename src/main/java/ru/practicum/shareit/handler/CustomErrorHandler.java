@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.practicum.shareit.exception.AccessDeniedException;
+import ru.practicum.shareit.exception.DuplicateEmailException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.response.ApiError;
 import ru.practicum.shareit.response.ValidationErrorResponse;
 import ru.practicum.shareit.response.Violation;
-import ru.practicum.shareit.exception.DuplicateEmailException;
 
 import java.util.List;
 import java.util.stream.Collectors;
