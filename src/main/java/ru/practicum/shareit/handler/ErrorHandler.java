@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice(basePackages = {"ru.practicum.shareit.user.controller",
         "ru.practicum.shareit.item.controller"})
-public class CustomErrorHandler extends ResponseEntityExceptionHandler {
+public class ErrorHandler extends ResponseEntityExceptionHandler {
     //400
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(final MethodArgumentNotValidException ex,
