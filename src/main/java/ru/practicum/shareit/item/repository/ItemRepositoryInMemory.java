@@ -41,17 +41,11 @@ public class ItemRepositoryInMemory implements ItemRepository {
 
     @Override
     public Collection<Item> search(String text) {
-        if (text == null || text.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         String searchText = text.toLowerCase();
         return items.values().stream()
                 .filter(item -> item.getAvailable() != null && item.getAvailable())
-                .filter(item -> {
-                    return item.getName().toLowerCase().contains(searchText) ||
-                            item.getDescription().toLowerCase().contains(searchText);
-                })
+                .filter(item -> item.getName().toLowerCase().contains(searchText) ||
+                            item.getDescription().toLowerCase().contains(searchText))
                 .toList();
     }
 

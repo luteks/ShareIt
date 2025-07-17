@@ -1,84 +1,17 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.DuplicateEmailException;
-import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
-import java.util.List;
 
-@Slf4j
-@Service
-@AllArgsConstructor
-public class UserService {
-    private final UserRepository userRepository;
+public interface UserService {
+    UserDto find(Long userId);
 
-    public UserDto find(Long userId) {
-        User user = userExistCheck(userId);
+    Collection<UserDto> findAll();
 
-        log.debug("Пользователь {} успешно найден.", user);
-        return UserMapper.toUserDto(user);
-    }
+    UserDto create(UserDto userDto);
 
-    public Collection<UserDto> findAll() {
-        Collection<User> users = userRepository.readAll();
-        List<UserDto> userList = users.stream()
-                .map(UserMapper::toUserDto)
-                .toList();
+    UserDto update(UserDto userDto, Long userId);
 
-        log.debug("Получен список всех пользователей {}.", userList);
-        return userList;
-    }
-
-    public UserDto create(UserDto userDto) {
-        mailExistCheck(userDto.getEmail());
-
-        User user = UserMapper.toUser(userDto, 0L);
-
-        log.debug("Пользователь {} создан.", user);
-        return UserMapper.toUserDto(userRepository.create(user));
-    }
-
-    public UserDto update(UserDto userDto, Long userId) {
-        User user = userExistCheck(userId);
-        String oldEmail = user.getEmail();
-
-        if (userDto.getName() != null && !userDto.getName().isBlank()) user.setName(userDto.getName());
-        if (userDto.getEmail() != null) {
-            if (!oldEmail.equals(userDto.getEmail()) && !userDto.getEmail().isBlank()) {
-                mailExistCheck(userDto.getEmail());
-            }
-            user.setEmail(userDto.getEmail());
-        }
-
-        log.debug("Пользователь {} обновлен.", userId);
-        return UserMapper.toUserDto(userRepository.update(user, userId));
-    }
-
-    public void delete(Long userId) {
-        log.debug("Пользователь {} удален.", userId);
-        userRepository.delete(userId);
-    }
-
-    private User userExistCheck(Long id) {
-        if (userRepository.read(id).isEmpty()) {
-            log.warn("Пользователь с id = {} не найден", id);
-            throw new EntityNotFoundException("Пользователь", id);
-        }
-
-        return userRepository.read(id).get();
-    }
-
-    private void mailExistCheck(String email) {
-        if (!userRepository.isEmailExist(email)){
-            log.warn("Пользователь с почтой {} уже существует.", email);
-            throw new DuplicateEmailException("Email already exists");
-        }
-    }
+    void delete(Long userId);
 }
