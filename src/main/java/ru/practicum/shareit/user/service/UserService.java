@@ -20,9 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public UserDto find(Long userId) {
-        log.debug("Начало поиска пользователя {}.", userId);
-        userExistCheck(userId);
-        User user = userRepository.read(userId);
+        User user = userExistCheck(userId);
 
         log.debug("Пользователь {} успешно найден.", user);
         return UserMapper.toUserDto(user);
@@ -48,13 +46,12 @@ public class UserService {
     }
 
     public UserDto update(UserDto userDto, Long userId) {
-        userExistCheck(userId);
-
-        User user = userRepository.read(userId);
+        User user = userExistCheck(userId);
         String oldEmail = user.getEmail();
-        if (userDto.getName() != null) user.setName(userDto.getName());
+
+        if (userDto.getName() != null && !userDto.getName().isBlank()) user.setName(userDto.getName());
         if (userDto.getEmail() != null) {
-            if (!oldEmail.equals(userDto.getEmail())) {
+            if (!oldEmail.equals(userDto.getEmail()) && !userDto.getEmail().isBlank()) {
                 mailExistCheck(userDto.getEmail());
             }
             user.setEmail(userDto.getEmail());
@@ -69,11 +66,13 @@ public class UserService {
         userRepository.delete(userId);
     }
 
-    private void userExistCheck(Long id) {
-        if (userRepository.read(id) == null) {
+    private User userExistCheck(Long id) {
+        if (userRepository.read(id).isEmpty()) {
             log.warn("Пользователь с id = {} не найден", id);
             throw new EntityNotFoundException("Пользователь", id);
         }
+
+        return userRepository.read(id).get();
     }
 
     private void mailExistCheck(String email) {

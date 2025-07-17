@@ -14,8 +14,8 @@ public class UserRepositoryInMemory implements UserRepository {
     private final Set<String> emailSet = new HashSet<>();
 
     @Override
-    public User read(Long userId) {
-        return users.get(userId);
+    public Optional<User> read(Long userId) {
+        return Optional.of(users.get(userId));
     }
 
     @Override

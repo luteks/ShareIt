@@ -22,9 +22,8 @@ public class ItemService {
     private final ItemRepository itemRepository;
 
     public ItemDto find(Long itemId) {
-        itemExistCheck(itemId);
+        Item item = itemExistCheck(itemId);
 
-        Item item = itemRepository.read(itemId);
         log.debug("Получен предмет {}.", itemId);
         return ItemMapper.toItemDto(item);
     }
@@ -49,14 +48,13 @@ public class ItemService {
 
     public ItemDto update(ItemDto itemDto, Long itemId, Long userId) {
         userExistCheck(userId);
-        itemExistCheck(itemId);
 
-        Item itemUpdate = itemRepository.read(itemId);
+        Item itemUpdate = itemExistCheck(itemId);
 
         itemOwnershipCheck(itemUpdate, userId);
 
-        if (itemDto.getName() != null) itemUpdate.setName(itemDto.getName());
-        if (itemDto.getDescription() != null) itemUpdate.setDescription(itemDto.getDescription());
+        if (itemDto.getName() != null && !itemDto.getName().isBlank()) itemUpdate.setName(itemDto.getName());
+        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank()) itemUpdate.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null) itemUpdate.setAvailable(itemDto.getAvailable());
 
         log.debug("Обновлен предмет {}.", itemId);
@@ -72,17 +70,19 @@ public class ItemService {
     }
 
     private void userExistCheck(Long id) {
-        if (userRepository.read(id) == null) {
+        if (userRepository.read(id).isEmpty()) {
             log.warn("Пользователь {} не найден!", id);
             throw new EntityNotFoundException("Пользователь", id);
         }
     }
 
-    private void itemExistCheck(Long id) {
-        if (itemRepository.read(id) == null) {
+    private Item itemExistCheck(Long id) {
+        if (itemRepository.read(id).isEmpty()) {
             log.warn("Предмет {} не найден", id);
             throw new EntityNotFoundException("Предмет", id);
         }
+
+        return itemRepository.read(id).get();
     }
 
     private void itemOwnershipCheck(Item item, Long ownerId) {
