@@ -12,14 +12,14 @@ public class ItemRepositoryInMemory implements ItemRepository {
     private final HashMap<Long, Item> items = new HashMap<>();
 
     @Override
-    public Item create(Item item, Long userId) {
+    public Item create(Item item) {
         item.setId(getNextId());
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
-    public Item update(Item itemUpdate, Long itemId, Long userId) {
+    public Item update(Item itemUpdate, Long itemId) {
         items.put(itemUpdate.getId(), itemUpdate);
         return itemUpdate;
     }
@@ -27,13 +27,16 @@ public class ItemRepositoryInMemory implements ItemRepository {
 
     @Override
     public Optional<Item> read(Long itemId) {
+        if (!items.containsKey(itemId)) {
+            return Optional.empty();
+        }
         return Optional.of(items.get(itemId));
     }
 
     @Override
     public Collection<Item> readAll(Long userId) {
         return items.values().stream()
-                .filter(item -> Objects.equals(item.getOwner().getId(), userId))
+                .filter(item -> Objects.equals(item.getOwnerId(), userId))
                 .toList();
     }
 

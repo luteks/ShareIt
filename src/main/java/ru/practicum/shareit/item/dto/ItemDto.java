@@ -13,7 +13,7 @@ import ru.practicum.shareit.validation.Marker;
 public class ItemDto {
     @Null(groups = Marker.OnCreate.class, message = "При добавлении вещи id должен быть null")
     private Long id;
-    @NotBlank(groups = Marker.OnCreate.class, message = "Название вещи не долнжо быть пустым")
+    @NotBlank(groups = Marker.OnCreate.class, message = "Название вещи не должно быть пустым")
     private String name;
     @Size(groups = {Marker.OnCreate.class, Marker.OnUpdate.class}, max = 200,
             message = "Длина описания превышает 200 символов")

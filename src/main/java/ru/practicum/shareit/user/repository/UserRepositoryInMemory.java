@@ -14,6 +14,9 @@ public class UserRepositoryInMemory implements UserRepository {
 
     @Override
     public Optional<User> read(Long userId) {
+        if (!users.containsKey(userId)) {
+            return Optional.empty();
+        }
         return Optional.of(users.get(userId));
     }
 
@@ -24,7 +27,10 @@ public class UserRepositoryInMemory implements UserRepository {
 
     @Override
     public User create(User user) {
+        user.setId(getNextId());
+
         users.put(user.getId(), user);
+        emailSet.add(user.getEmail());
         return user;
     }
 

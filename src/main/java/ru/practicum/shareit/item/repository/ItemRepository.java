@@ -11,9 +11,9 @@ public interface ItemRepository {
 
     Collection<Item> readAll(Long userId);
 
-    Item create(Item item, Long userId);
+    Item create(Item item);
 
-    Item update(Item itemUpdate, Long itemId, Long userId);
+    Item update(Item itemUpdate, Long itemId);
 
     Collection<Item> search(String text);
 }

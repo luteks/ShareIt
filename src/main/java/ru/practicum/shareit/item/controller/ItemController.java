@@ -2,10 +2,7 @@ package ru.practicum.shareit.item.controller;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +44,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItems(@RequestParam(name = "text") @NonNull @NotBlank @NotEmpty String searchText,
+    public Collection<ItemDto> searchItems(@RequestParam(name = "text") String searchText,
                                            @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.debug("Попытка создания предмета по описанию: {}.", searchText);
         return itemService.search(searchText);

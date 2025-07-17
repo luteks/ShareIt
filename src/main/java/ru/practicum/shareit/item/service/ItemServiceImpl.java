@@ -12,7 +12,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -24,9 +24,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto find(Long itemId) {
         Item item = itemExistCheck(itemId);
+        ItemDto itemDto = ItemMapper.toItemDto(item);
 
-        log.debug("Получен предмет {}.", itemId);
-        return ItemMapper.toItemDto(item);
+        log.debug("Получен предмет {}.", itemDto);
+        return itemDto;
     }
 
     @Override
@@ -34,10 +35,11 @@ public class ItemServiceImpl implements ItemService {
         userExistCheck(userId);
 
         Collection<Item> items = itemRepository.readAll(userId);
-        log.debug("Получен список всех предметов.");
-        return items.stream()
+        Collection<ItemDto> itemDtos = items.stream()
                 .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+                .toList();
+        log.debug("Получен список всех предметов {}.", itemDtos);
+        return itemDtos;
     }
 
     @Override
@@ -45,8 +47,9 @@ public class ItemServiceImpl implements ItemService {
         userExistCheck(userId);
 
         Item item = ItemMapper.toItem(itemDto, userId, 0L);
-        log.debug("Создан новый предмет {}", item);
-        return ItemMapper.toItemDto(itemRepository.create(item, userId));
+        itemDto = ItemMapper.toItemDto(itemRepository.create(item));
+        log.debug("Создан новый предмет {}", itemDto);
+        return itemDto;
     }
 
     @Override
@@ -61,13 +64,18 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank())
             itemUpdate.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null) itemUpdate.setAvailable(itemDto.getAvailable());
+        itemDto = ItemMapper.toItemDto(itemRepository.update(itemUpdate, itemId));
 
-        log.debug("Обновлен предмет {}.", itemId);
-        return ItemMapper.toItemDto(itemRepository.update(itemUpdate, itemId, userId));
+        log.debug("Обновлен предмет {}.", itemDto);
+        return itemDto;
     }
 
     @Override
     public Collection<ItemDto> search(String text) {
+        if (text == null || text.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Collection<Item> items = itemRepository.search(text);
         log.debug("Получен через поиск список предметов по запросу: {}.", text);
         return items.stream()
@@ -77,14 +85,14 @@ public class ItemServiceImpl implements ItemService {
 
     private void userExistCheck(Long id) {
         if (userRepository.read(id).isEmpty()) {
-            log.warn("Пользователь {} не найден!", id);
+            log.error("Пользователь {} не найден!", id);
             throw new EntityNotFoundException("Пользователь", id);
         }
     }
 
     private Item itemExistCheck(Long id) {
         if (itemRepository.read(id).isEmpty()) {
-            log.warn("Предмет {} не найден", id);
+            log.error("Предмет {} не найден", id);
             throw new EntityNotFoundException("Предмет", id);
         }
 
@@ -92,8 +100,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void itemOwnershipCheck(Item item, Long ownerId) {
-        if (!item.getOwner().getId().equals(ownerId)) {
-            log.warn("Редактировать вещь {} может только владелец вещи!", item.getId());
+        if (!item.getOwnerId().equals(ownerId)) {
+            log.error("Редактировать вещь {} может только владелец вещи!", item.getId());
             throw new AccessDeniedException("Редактировать вещь может только владелец вещи");
         }
     }

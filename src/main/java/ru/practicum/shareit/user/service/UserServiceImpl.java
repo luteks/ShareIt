@@ -22,9 +22,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto find(Long userId) {
         User user = userExistCheck(userId);
-
-        log.debug("Пользователь {} успешно найден.", user);
-        return UserMapper.toUserDto(user);
+        UserDto userDto = UserMapper.toUserDto(user);
+        log.debug("Пользователь {} успешно найден.", userDto);
+        return userDto;
     }
 
     @Override
@@ -43,9 +43,10 @@ public class UserServiceImpl implements UserService {
         mailExistCheck(userDto.getEmail());
 
         User user = UserMapper.toUser(userDto, 0L);
+        userDto = UserMapper.toUserDto(userRepository.create(user));
 
-        log.debug("Пользователь {} создан.", user);
-        return UserMapper.toUserDto(userRepository.create(user));
+        log.debug("Пользователь {} создан.", userDto);
+        return userDto;
     }
 
     @Override
@@ -60,9 +61,10 @@ public class UserServiceImpl implements UserService {
             }
             user.setEmail(userDto.getEmail());
         }
+        userDto = UserMapper.toUserDto(userRepository.update(user, userId));
 
-        log.debug("Пользователь {} обновлен.", userId);
-        return UserMapper.toUserDto(userRepository.update(user, userId));
+        log.debug("Пользователь {} обновлен.", userDto);
+        return userDto;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class UserServiceImpl implements UserService {
 
     private User userExistCheck(Long id) {
         if (userRepository.read(id).isEmpty()) {
-            log.warn("Пользователь с id = {} не найден", id);
+            log.error("Пользователь с id = {} не найден", id);
             throw new EntityNotFoundException("Пользователь", id);
         }
 
@@ -83,8 +85,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void mailExistCheck(String email) {
-        if (!userRepository.isEmailExist(email)) {
-            log.warn("Пользователь с почтой {} уже существует.", email);
+        if (userRepository.isEmailExist(email)) {
+            log.error("Пользователь с почтой {} уже существует.", email);
             throw new DuplicateEmailException("Email already exists");
         }
     }
