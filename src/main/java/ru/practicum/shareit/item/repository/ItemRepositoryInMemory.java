@@ -17,19 +17,14 @@ public class ItemRepositoryInMemory implements ItemRepository {
     private final HashMap<Long, Item> items = new HashMap<>();
 
     @Override
-    public Item create(ItemDto itemDto, Long userId) {
-        Item item = ItemMapper.toItem(itemDto, userId, getNextId());
+    public Item create(Item item, Long userId) {
+        item.setId(getNextId());
         items.put(item.getId(), item);
         return item;
     }
 
     @Override
-    public Item update(ItemDto itemUpdateDto, Long itemId, Long userId) {
-        Item itemUpdate = read(itemId);
-        if (itemUpdateDto.getName() != null) itemUpdate.setName(itemUpdateDto.getName());
-        if (itemUpdateDto.getDescription() != null) itemUpdate.setDescription(itemUpdateDto.getDescription());
-        if (itemUpdateDto.getAvailable() != null) itemUpdate.setAvailable(itemUpdateDto.getAvailable());
-
+    public Item update(Item itemUpdate, Long itemId, Long userId) {
         items.put(itemUpdate.getId(), itemUpdate);
         return itemUpdate;
     }

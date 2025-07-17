@@ -41,8 +41,10 @@ public class ItemService {
 
     public ItemDto create(ItemDto itemDto, Long userId) {
         userExistCheck(userId);
-        log.debug("Создан новый предмет {}", itemDto);
-        return ItemMapper.toItemDto(itemRepository.create(itemDto, userId));
+
+        Item item = ItemMapper.toItem(itemDto, userId,0L);
+        log.debug("Создан новый предмет {}", item);
+        return ItemMapper.toItemDto(itemRepository.create(item, userId));
     }
 
     public ItemDto update(ItemDto itemDto, Long itemId, Long userId) {
@@ -52,8 +54,13 @@ public class ItemService {
         Item itemUpdate = itemRepository.read(itemId);
 
         itemOwnershipCheck(itemUpdate, userId);
+
+        if (itemDto.getName() != null) itemUpdate.setName(itemDto.getName());
+        if (itemDto.getDescription() != null) itemUpdate.setDescription(itemDto.getDescription());
+        if (itemDto.getAvailable() != null) itemUpdate.setAvailable(itemDto.getAvailable());
+
         log.debug("Обновлен предмет {}.", itemId);
-        return ItemMapper.toItemDto(itemRepository.update(itemDto, itemId, userId));
+        return ItemMapper.toItemDto(itemRepository.update(itemUpdate, itemId, userId));
     }
 
     public Collection<ItemDto> search(String text) {

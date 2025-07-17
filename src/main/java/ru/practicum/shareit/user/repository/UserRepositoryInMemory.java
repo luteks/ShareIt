@@ -3,8 +3,6 @@ package ru.practicum.shareit.user.repository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DuplicateEmailException;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
@@ -26,31 +24,22 @@ public class UserRepositoryInMemory implements UserRepository {
     }
 
     @Override
-    public User create(UserDto userDto) {
-        if (!emailSet.add(userDto.getEmail())) {
-            throw new DuplicateEmailException("Email already exists");
-        }
-        User user = UserMapper.toUser(userDto, getNextId());
+    public User create(User user) {
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
-    public User update(UserDto userDto, Long userId) {
-        User updateUser = users.get(userId);
-        String oldEmail = updateUser.getEmail();
-        if (userDto.getName() != null) updateUser.setName(userDto.getName());
-        if (userDto.getEmail() != null) {
-            if (!oldEmail.equals(userDto.getEmail())) {
+    public User update(User user, Long userId) {
+        String oldEmail = users.get(userId).getEmail();
+        if (user.getEmail() != null) {
+            if (!oldEmail.equals(user.getEmail())) {
                 emailSet.remove(oldEmail);
-                if (!emailSet.add(userDto.getEmail())) {
-                    throw new DuplicateEmailException("Email already exists");
-                }
             }
-            updateUser.setEmail(userDto.getEmail());
         }
-        users.put(userId, updateUser);
-        return updateUser;
+
+        users.put(userId, user);
+        return user;
     }
 
     @Override
@@ -61,5 +50,10 @@ public class UserRepositoryInMemory implements UserRepository {
 
     private Long getNextId() {
         return users.isEmpty() ? 1 : Collections.max(users.keySet()) + 1;
+    }
+
+    @Override
+    public Boolean isEmailExist(String email) {
+        return emailSet.contains(email);
     }
 }

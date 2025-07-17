@@ -11,9 +11,11 @@ public interface UserRepository {
 
     Collection<User> readAll();
 
-    User create(UserDto userDto);
+    User create(User user);
 
-    User update(UserDto userDto, Long userId);
+    User update(User user, Long userId);
 
     void delete(Long userId);
+
+    Boolean isEmailExist(String email);
 }
