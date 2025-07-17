@@ -2,7 +2,6 @@ package ru.practicum.shareit.user.repository;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.DuplicateEmailException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;

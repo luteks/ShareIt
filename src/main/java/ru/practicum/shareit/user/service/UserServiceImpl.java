@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void mailExistCheck(String email) {
-        if (!userRepository.isEmailExist(email)){
+        if (!userRepository.isEmailExist(email)) {
             log.warn("Пользователь с почтой {} уже существует.", email);
             throw new DuplicateEmailException("Email already exists");
         }

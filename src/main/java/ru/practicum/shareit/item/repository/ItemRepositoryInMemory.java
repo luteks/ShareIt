@@ -2,8 +2,6 @@ package ru.practicum.shareit.item.repository;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -45,7 +43,7 @@ public class ItemRepositoryInMemory implements ItemRepository {
         return items.values().stream()
                 .filter(item -> item.getAvailable() != null && item.getAvailable())
                 .filter(item -> item.getName().toLowerCase().contains(searchText) ||
-                            item.getDescription().toLowerCase().contains(searchText))
+                        item.getDescription().toLowerCase().contains(searchText))
                 .toList();
     }
 

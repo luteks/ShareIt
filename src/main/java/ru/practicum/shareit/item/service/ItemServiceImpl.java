@@ -44,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(ItemDto itemDto, Long userId) {
         userExistCheck(userId);
 
-        Item item = ItemMapper.toItem(itemDto, userId,0L);
+        Item item = ItemMapper.toItem(itemDto, userId, 0L);
         log.debug("Создан новый предмет {}", item);
         return ItemMapper.toItemDto(itemRepository.create(item, userId));
     }
@@ -58,7 +58,8 @@ public class ItemServiceImpl implements ItemService {
         itemOwnershipCheck(itemUpdate, userId);
 
         if (itemDto.getName() != null && !itemDto.getName().isBlank()) itemUpdate.setName(itemDto.getName());
-        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank()) itemUpdate.setDescription(itemDto.getDescription());
+        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank())
+            itemUpdate.setDescription(itemDto.getDescription());
         if (itemDto.getAvailable() != null) itemUpdate.setAvailable(itemDto.getAvailable());
 
         log.debug("Обновлен предмет {}.", itemId);
