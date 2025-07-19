@@ -12,9 +12,10 @@ public class UserMapper {
         );
     }
 
-    public static User toUser(UserDto userDto, Long userId) {
-        return new User(userId,
-                userDto.getName(),
-                userDto.getEmail());
+    public static User toUser(UserDto userDto) {
+        return User.builder()
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .build();
     }
 }

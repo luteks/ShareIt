@@ -21,7 +21,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto find(Long userId) {
-        User user = userExistCheck(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+
         UserDto userDto = UserMapper.toUserDto(user);
         log.debug("Пользователь {} успешно найден.", userDto);
         return userDto;
@@ -29,7 +31,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserDto> findAll() {
-        Collection<User> users = userRepository.readAll();
+        Collection<User> users = userRepository.findAll();
         List<UserDto> userList = users.stream()
                 .map(UserMapper::toUserDto)
                 .toList();
@@ -42,8 +44,7 @@ public class UserServiceImpl implements UserService {
     public UserDto create(UserDto userDto) {
         mailExistCheck(userDto.getEmail());
 
-        User user = UserMapper.toUser(userDto, 0L);
-        userDto = UserMapper.toUserDto(userRepository.create(user));
+        userDto = UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
 
         log.debug("Пользователь {} создан.", userDto);
         return userDto;
@@ -51,17 +52,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        User user = userExistCheck(userId);
-        String oldEmail = user.getEmail();
+        User updateUser = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
 
-        if (userDto.getName() != null && !userDto.getName().isBlank()) user.setName(userDto.getName());
-        if (userDto.getEmail() != null) {
-            if (!oldEmail.equals(userDto.getEmail()) && !userDto.getEmail().isBlank()) {
-                mailExistCheck(userDto.getEmail());
-            }
-            user.setEmail(userDto.getEmail());
-        }
-        userDto = UserMapper.toUserDto(userRepository.update(user, userId));
+        mailExistCheck(userDto.getEmail());
+
+        if (userDto.getName() != null && !userDto.getName().isBlank()) updateUser.setName(userDto.getName());
+        if (userDto.getEmail() != null && !userDto.getEmail().isBlank()) updateUser.setEmail(userDto.getEmail());
+
+        userDto = UserMapper.toUserDto(userRepository.save(updateUser));
 
         log.debug("Пользователь {} обновлен.", userDto);
         return userDto;
@@ -69,23 +68,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long userId) {
-        userExistCheck(userId);
+        User deletedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
 
-        log.debug("Пользователь {} удален.", userId);
-        userRepository.delete(userId);
-    }
-
-    private User userExistCheck(Long id) {
-        if (userRepository.read(id).isEmpty()) {
-            log.error("Пользователь с id = {} не найден", id);
-            throw new EntityNotFoundException("Пользователь", id);
-        }
-
-        return userRepository.read(id).get();
+        log.debug("Пользователь {} удален.", deletedUser);
+        userRepository.deleteById(userId);
     }
 
     private void mailExistCheck(String email) {
-        if (userRepository.isEmailExist(email)) {
+        if (userRepository.existsByEmail(email)) {
             log.error("Пользователь с почтой {} уже существует.", email);
             throw new DuplicateEmailException("Email already exists");
         }
