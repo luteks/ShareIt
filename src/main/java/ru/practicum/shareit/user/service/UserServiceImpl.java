@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicateEmailException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -21,8 +22,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto find(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+        User user = userExistCheck(userId);
 
         UserDto userDto = UserMapper.toUserDto(user);
         log.debug("Пользователь {} успешно найден.", userDto);
@@ -52,8 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        User updateUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+        User updateUser = userExistCheck(userId);
 
         mailExistCheck(userDto.getEmail());
 
@@ -68,8 +67,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long userId) {
-        User deletedUser = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+        User deletedUser = userExistCheck(userId);
 
         log.debug("Пользователь {} удален.", deletedUser);
         userRepository.deleteById(userId);
@@ -80,5 +78,14 @@ public class UserServiceImpl implements UserService {
             log.error("Пользователь с почтой {} уже существует.", email);
             throw new DuplicateEmailException("Email already exists");
         }
+    }
+
+    private User userExistCheck(Long id) {
+        if (userRepository.findById(id).isEmpty()) {
+            log.error("Пользователь {} не найден!", id);
+            throw new EntityNotFoundException("Пользователь", id);
+        }
+
+        return userRepository.findById(id).get();
     }
 }

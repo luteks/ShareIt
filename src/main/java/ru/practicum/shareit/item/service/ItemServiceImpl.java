@@ -43,8 +43,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemAllFieldsDto find(Long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Предмет", itemId));
+        Item item = itemExistCheck(itemId);
         Collection<Booking> bookings = bookingRepository.findAllByItem_Id(itemId);
 
         ItemAllFieldsDto itemAllFieldsDto = createItemAllFieldsDtoWithBookings(item, bookings);
@@ -55,6 +54,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemAllFieldsDto> findAll(Long userId) {
+        userExistCheck(userId);
+
         Collection<Item> items = itemRepository.findByOwnerId(userId);
         Collection<Booking> bookings = bookingRepository.findAllByItem_Owner_Id(userId);
 
@@ -75,8 +76,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(ItemDto itemDto, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+        User user = userExistCheck(userId);
         ItemDto itemDtoNew = ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(itemDto, userId)));
 
         log.debug("Создан новый предмет {}", itemDtoNew);
@@ -85,8 +85,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(ItemDto itemUpdateDto, Long itemId, Long userId) {
-        Item itemUpdate = itemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Предмет", itemId));
+        userExistCheck(userId);
+        Item itemUpdate = itemExistCheck(itemId);
 
         itemOwnershipCheck(itemUpdate, userId);
 
@@ -120,8 +120,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(Long itemId, Long userId, CommentDto commentDto) {
-        User author = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь", userId));
+        User author = userExistCheck(userId);
 
         Booking booking = bookingRepository.findByBooker_IdAndItem_IdAndStatusAndEndTimeBefore(userId, itemId,
                         BookingStatus.APPROVED,
@@ -161,6 +160,24 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return ItemMapper.toItemAllFieldsDto(item, endBooking, startNextBooking, comments);
+    }
+
+    private User userExistCheck(Long id) {
+        if (userRepository.findById(id).isEmpty()) {
+            log.error("Пользователь {} не найден!", id);
+            throw new EntityNotFoundException("Пользователь", id);
+        }
+
+        return userRepository.findById(id).get();
+    }
+
+    private Item itemExistCheck(Long id) {
+        if (itemRepository.findById(id).isEmpty()) {
+            log.error("Предмет {} не найден", id);
+            throw new EntityNotFoundException("Предмет", id);
+        }
+
+        return itemRepository.findById(id).get();
     }
 
     private void itemOwnershipCheck(Item item, Long ownerId) {
