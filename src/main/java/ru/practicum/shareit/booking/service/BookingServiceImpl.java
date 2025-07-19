@@ -15,6 +15,7 @@ import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.ItemUnavailableException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -91,27 +92,42 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Item fetchItemAndCheckAvailability(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(() ->
-                new EntityNotFoundException("Предмет", itemId));
+        Item item = checkItemExists(itemId);
         if (!item.getAvailable()) {
+            log.error("Предмет с ID={} недоступен для бронирования", itemId);
             throw new ItemUnavailableException(String.format("Предмет с ID_%d недоступен для бронирования", item.getId()));
         }
         return item;
     }
 
-    private void checkUserExists(Long userId) {
-        userRepository.findById(userId).orElseThrow(() ->
-                new EntityNotFoundException("Пользователь", userId));
+    private User checkUserExists(Long userId) {
+        if (userRepository.findById(userId).isEmpty()) {
+            log.error("Пользователь {} не найден!", userId);
+            throw new EntityNotFoundException("Пользователь", userId);
+        }
+
+        return userRepository.findById(userId).get();
+    }
+
+    private Item checkItemExists(Long id) {
+        if (itemRepository.findById(id).isEmpty()) {
+            log.error("Предмет {} не найден", id);
+            throw new EntityNotFoundException("Предмет", id);
+        }
+
+        return itemRepository.findById(id).get();
     }
 
     private void checkBookingAccessForOwner(Booking booking, Long userId) {
         if (!booking.getItem().getOwner().getId().equals(userId)) {
+            log.error("Подтвердить или отменить бронирование может только владелец вещи");
             throw new AccessDeniedException("Подтвердить или отменить бронирование может только владелец вещи");
         }
     }
 
     private void checkBookingAccessForUserOrOwner(Booking booking, Long userId) {
         if (!(booking.getBooker().getId().equals(userId) || booking.getItem().getOwner().getId().equals(userId))) {
+            log.error("Просмотреть бронирование может только владелец вещи либо автор бронирования");
             throw new AccessDeniedException("Просмотреть бронирование может только владелец вещи либо автор бронирования");
         }
     }
@@ -124,6 +140,7 @@ public class BookingServiceImpl implements BookingService {
                 BookingStatus.APPROVED,
                 startBooking,
                 endBooking)) {
+            log.error("Предмет с ID={} недоступен для бронирования", bookingCreateDto.getItemId());
             throw new ItemUnavailableException(String.format("Предмет с ID_%d недоступен для бронирования",
                     bookingCreateDto.getItemId()));
         }
