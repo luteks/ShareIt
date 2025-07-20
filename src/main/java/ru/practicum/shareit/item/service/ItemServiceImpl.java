@@ -57,16 +57,12 @@ public class ItemServiceImpl implements ItemService {
         userExistCheck(userId);
 
         Collection<Item> items = itemRepository.findByOwnerId(userId);
-        Collection<Booking> bookings = bookingRepository.findAllByItem_Owner_Id(userId);
-
-        Map<Long, List<Booking>> bookingsByItem = bookings.stream()
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<Booking>> bookingsMap = bookingRepository.findAllByItem_IdIn(itemIds).stream()
                 .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
 
         List<ItemAllFieldsDto> itemAllFieldsDtos = items.stream()
-                .map(item -> {
-                    List<Booking> itemBookings = bookingsByItem.getOrDefault(item.getId(), Collections.emptyList());
-                    return createItemAllFieldsDtoWithBookings(item, itemBookings);
-                })
+                .map(item -> createItemAllFieldsDtoWithBookings(item, bookingsMap.getOrDefault(item.getId(), Collections.emptyList())))
                 .collect(Collectors.toList());
 
         log.debug("Получен список всех предметов {}.", itemAllFieldsDtos);

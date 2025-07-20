@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,6 +24,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @EntityGraph(attributePaths = {"item", "item.owner"})
     Collection<Booking> findAllByItem_Id(Long itemId);
+
+    @EntityGraph(attributePaths = {"item", "item.owner"})
+    Collection<Booking> findAllByItem_IdIn(List<Long> itemIds);
 
     @EntityGraph(attributePaths = {"item", "item.owner"})
     Collection<Booking> findAllByBooker_IdAndStatusAndStartBeforeAndEndTimeAfter(Long bookerId,
