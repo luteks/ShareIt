@@ -23,14 +23,10 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
 
 @Slf4j
 @Service
@@ -44,9 +40,14 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemAllFieldsDto find(Long itemId) {
         Item item = itemExistCheck(itemId);
-        Collection<Booking> bookings = bookingRepository.findAllByItem_Id(itemId);
 
-        ItemAllFieldsDto itemAllFieldsDto = createItemAllFieldsDtoWithBookings(item, bookings);
+        Collection<Booking> bookings = bookingRepository.findAllByItem_Id(itemId);
+        Collection<CommentDto> comments = commentRepository.findAllByItemId(itemId)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
+
+        ItemAllFieldsDto itemAllFieldsDto = createItemAllFieldsDtoWithBookingsAndComments(item, bookings, comments);
 
         log.debug("Получен предмет {}.", itemAllFieldsDto);
         return itemAllFieldsDto;
@@ -58,11 +59,21 @@ public class ItemServiceImpl implements ItemService {
 
         Collection<Item> items = itemRepository.findByOwnerIdOrderById(userId);
         List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+
         Map<Long, List<Booking>> bookingsMap = bookingRepository.findAllByItem_IdIn(itemIds).stream()
                 .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
 
+        Map<Long, List<CommentDto>> commentsMap = commentRepository.findAllByItemIdIn(itemIds).stream()
+                .collect(Collectors.groupingBy(comment -> comment.getItem().getId(),
+                        Collectors.mapping(CommentMapper::toCommentDto, Collectors.toList())));
+
         List<ItemAllFieldsDto> itemAllFieldsDtos = items.stream()
-                .map(item -> createItemAllFieldsDtoWithBookings(item, bookingsMap.getOrDefault(item.getId(), Collections.emptyList())))
+                .map(item -> {
+                    List<Booking> bookings = bookingsMap.getOrDefault(item.getId(), Collections.emptyList());
+                    List<CommentDto> comments = commentsMap.getOrDefault(item.getId(), Collections.emptyList());
+
+                    return createItemAllFieldsDtoWithBookingsAndComments(item, bookings, comments);
+                })
                 .collect(Collectors.toList());
 
         log.debug("Получен список всех предметов {}.", itemAllFieldsDtos);
@@ -137,27 +148,30 @@ public class ItemServiceImpl implements ItemService {
         return CommentMapper.toCommentDto(commentRepository.save(comment));
     }
 
-    private ItemAllFieldsDto createItemAllFieldsDtoWithBookings(Item item, Collection<Booking> bookings) {
-        List<Booking> sortedBookings = bookings.stream()
-                .sorted(comparing(Booking::getStart))
-                .toList();
+    private ItemAllFieldsDto createItemAllFieldsDtoWithBookingsAndComments(
+            Item item,
+            Collection<Booking> bookings,
+            Collection<CommentDto> comments) {
 
-        BookingDto lastBooking = sortedBookings.stream()
-                .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
-                .max(comparing(Booking::getStart))
-                .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
-                .orElse(null);
+        BookingDto endBooking = null;
+        BookingDto startNextBooking = null;
 
-        BookingDto nextBooking = sortedBookings.stream()
-                .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
-                .min(comparing(Booking::getStart))
-                .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
-                .orElse(null);
+        if (!bookings.isEmpty()) {
+            endBooking = bookings.stream()
+                    .filter(booking -> booking.getEndTime().isBefore(LocalDateTime.now()) &&
+                            Duration.between(booking.getStart(), booking.getEndTime()).toSeconds() > 1)
+                    .max(Comparator.comparing(Booking::getEndTime))
+                    .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
+                    .orElse(null);
 
-        return ItemMapper.toItemAllFieldsDto(item, lastBooking, nextBooking,
-                commentRepository.findAllByItemId(item.getId()).stream()
-                        .map(CommentMapper::toCommentDto)
-                        .collect(Collectors.toList()));
+            startNextBooking = bookings.stream()
+                    .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
+                    .min(Comparator.comparing(Booking::getStart))
+                    .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
+                    .orElse(null);
+        }
+
+        return ItemMapper.toItemAllFieldsDto(item, endBooking, startNextBooking, comments);
     }
 
     private User userExistCheck(Long id) {
