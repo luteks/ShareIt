@@ -21,7 +21,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             """)
     Collection<Comment> findAllByItemId(@Param("id") Long itemId);
 
-    List<Comment> findAllByItemIdIn(Collection<Long> itemIds);
+    @Query("""
+                SELECT c
+                FROM Comment c
+                JOIN FETCH c.item i
+                JOIN FETCH c.author a
+                WHERE i.id IN :itemIds
+            """)
+    List<Comment> findAllByItemIdIn(@Param("itemIds") Collection<Long> itemIds);
 
     @Query("""
                     SELECT c
