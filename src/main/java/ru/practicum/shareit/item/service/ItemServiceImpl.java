@@ -126,26 +126,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
-    public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
-        User user = userExistCheck(userId);
-        Item item = itemExistCheck(itemId);
-        boolean hasCompletedBooking = bookingRepository.findByBooker_IdAndItem_IdAndStatusAndEndTimeBefore(
-                        userId, itemId, BookingStatus.APPROVED, LocalDateTime.now())
-                .stream()
-                .findAny()
-                .isPresent();
+    public CommentDto createComment(Long itemId, Long userId, CommentDto commentDto) {
+        User author = userExistCheck(userId);
 
-        if (!hasCompletedBooking) {
-            log.error("Пользователь не завершил бронирование данного товара.");
-            throw new CommentCreationException("Пользователь не завершил бронирование данного товара.");
-        }
+        Booking booking = bookingRepository.findByBooker_IdAndItem_IdAndStatusAndEndTimeBefore(userId, itemId,
+                        BookingStatus.APPROVED,
+                        LocalDateTime.now())
+                .orElseThrow(() -> new CommentCreationException("Оставить комментарий может " +
+                        "только пользователь, который брал вещь в аренду и только после окончания срока аренды"));
 
-        var comment = CommentMapper.toComment(commentDto, user, itemId);
-        comment.setItem(item);
-        comment.setAuthor(user);
-        comment.setCreated(LocalDateTime.now());
-        return CommentMapper.toCommentDto(commentRepository.save(comment));
+        CommentDto commentDtoNew = CommentMapper.toCommentDto(commentRepository.save(CommentMapper.toComment(commentDto, author, itemId)));
+
+        log.debug("Создан комментарий {}.", commentDtoNew);
+        return commentDtoNew;
     }
 
     private ItemAllFieldsDto createItemAllFieldsDtoWithBookingsAndComments(
