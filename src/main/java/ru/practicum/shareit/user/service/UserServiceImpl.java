@@ -80,11 +80,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private User userExistCheck(Long id) {
-        if (userRepository.findById(id).isEmpty()) {
+        return userRepository.findById(id).orElseThrow(() -> {
             log.error("Пользователь {} не найден!", id);
-            throw new EntityNotFoundException("Пользователь", id);
-        }
-
-        return userRepository.findById(id).get();
+            return new EntityNotFoundException("Пользователь", id);
+        });
     }
 }

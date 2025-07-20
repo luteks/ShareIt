@@ -49,11 +49,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto update(Long userId, Long bookingId, boolean approve) {
-        Booking bookingUpdate = bookingRepository.findBookingWithGraphById(bookingId).orElseThrow(() ->
-                new EntityNotFoundException("Бронирование", bookingId));
+        Booking bookingUpdate = checkBookingExist(bookingId);
 
         checkBookingAccessForOwner(bookingUpdate, userId);
-        bookingUpdate.setStatus(approve ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        bookingUpdate.setStatus((approve && bookingUpdate.getStatus().equals(BookingStatus.WAITING)) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         BookingDto bookingDto = BookingMapper.toBookingDto(bookingRepository.save(bookingUpdate), bookingUpdate.getBooker().getId());
 
         log.debug("Изменен статус бронирования {}", bookingDto);
@@ -74,6 +73,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> findAllUserBookings(Long userId, BookingState state) {
+        checkUserExists(userId);
         Collection<Booking> bookings = getBookingsByStateAndUser(userId, state, false);
         List<BookingDto> bookingDtoList = mapBookingsToDtoList(bookings, userId);
         log.debug("Найден список всех бронирований пользователя {}", bookingDtoList);
@@ -100,22 +100,26 @@ public class BookingServiceImpl implements BookingService {
         return item;
     }
 
-    private User checkUserExists(Long userId) {
-        if (userRepository.findById(userId).isEmpty()) {
-            log.error("Пользователь {} не найден!", userId);
-            throw new EntityNotFoundException("Пользователь", userId);
-        }
+    private Booking checkBookingExist(Long bookingId) {
+        return bookingRepository.findBookingWithGraphById(bookingId).orElseThrow(() -> {
+            log.error("Бронирование {} не найдено.", bookingId);
+            return new EntityNotFoundException("Бронирование", bookingId);
+        });
+    }
 
-        return userRepository.findById(userId).get();
+    private User checkUserExists(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Пользователь {} не найден!", userId);
+                    return new EntityNotFoundException("Пользователь", userId);
+                });
     }
 
     private Item checkItemExists(Long id) {
-        if (itemRepository.findById(id).isEmpty()) {
+        return itemRepository.findById(id).orElseThrow(() -> {
             log.error("Предмет {} не найден", id);
-            throw new EntityNotFoundException("Предмет", id);
-        }
-
-        return itemRepository.findById(id).get();
+            return new EntityNotFoundException("Предмет", id);
+        });
     }
 
     private void checkBookingAccessForOwner(Booking booking, Long userId) {
