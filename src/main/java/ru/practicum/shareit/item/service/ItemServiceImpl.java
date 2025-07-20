@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -22,7 +23,6 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(ItemDto itemDto, Long userId) {
-        User user = userExistCheck(userId);
+        userExistCheck(userId);
         ItemDto itemDtoNew = ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(itemDto, userId)));
 
         log.debug("Создан новый предмет {}", itemDtoNew);
@@ -119,47 +119,49 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public CommentDto createComment(Long itemId, Long userId, CommentDto commentDto) {
-        User author = userExistCheck(userId);
-
-        Booking booking = bookingRepository.findByBooker_IdAndItem_IdAndStatusAndEndTimeBefore(userId, itemId,
-                        BookingStatus.APPROVED,
-                        LocalDateTime.now())
-                .orElseThrow(() -> new CommentCreationException("Оставить комментарий может " +
-                        "только пользователь, который брал вещь в аренду и только после окончания срока аренды"));
-
-        CommentDto commentDtoNew = CommentMapper.toCommentDto(commentRepository.save(CommentMapper.toComment(commentDto, author, itemId)));
-
-        log.debug("Создан комментарий {}.", commentDtoNew);
-        return commentDtoNew;
-    }
-
-    private ItemAllFieldsDto createItemAllFieldsDtoWithBookings(Item item, Collection<Booking> itemBookings) {
-        Collection<CommentDto> comments = commentRepository.findAllByItemId(item.getId())
+    @Transactional
+    public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
+        User user = userExistCheck(userId);
+        Item item = itemExistCheck(itemId);
+        boolean hasCompletedBooking = bookingRepository.findByBooker_IdAndItem_IdAndStatusAndEndTimeBefore(
+                        userId, itemId, BookingStatus.APPROVED, LocalDateTime.now())
                 .stream()
-                .map(CommentMapper::toCommentDto)
-                .toList();
+                .findAny()
+                .isPresent();
 
-        BookingDto endBooking = null;
-        BookingDto startNextBooking = null;
-
-        if (!itemBookings.isEmpty()) {
-            endBooking = itemBookings.stream()
-                    .filter(booking -> booking.getEndTime().isBefore(LocalDateTime.now()) &&
-                            Duration.between(booking.getStart(), booking.getEndTime()).toSeconds() > 1)
-                    .max(comparing(Booking::getEndTime))
-                    .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
-                    .orElse(null);
-
-
-            startNextBooking = itemBookings.stream()
-                    .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
-                    .min(comparing(Booking::getStart))
-                    .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
-                    .orElse(null);
+        if (!hasCompletedBooking) {
+            log.error("Пользователь не завершил бронирование данного товара.");
+            throw new CommentCreationException("Пользователь не завершил бронирование данного товара.");
         }
 
-        return ItemMapper.toItemAllFieldsDto(item, endBooking, startNextBooking, comments);
+        var comment = CommentMapper.toComment(commentDto, user, itemId);
+        comment.setItem(item);
+        comment.setAuthor(user);
+        comment.setCreated(LocalDateTime.now());
+        return CommentMapper.toCommentDto(commentRepository.save(comment));
+    }
+
+    private ItemAllFieldsDto createItemAllFieldsDtoWithBookings(Item item, Collection<Booking> bookings) {
+        List<Booking> sortedBookings = bookings.stream()
+                .sorted(comparing(Booking::getStart))
+                .toList();
+
+        BookingDto lastBooking = sortedBookings.stream()
+                .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
+                .max(comparing(Booking::getStart))
+                .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
+                .orElse(null);
+
+        BookingDto nextBooking = sortedBookings.stream()
+                .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
+                .min(comparing(Booking::getStart))
+                .map(booking -> BookingMapper.toBookingDto(booking, booking.getBooker().getId()))
+                .orElse(null);
+
+        return ItemMapper.toItemAllFieldsDto(item, lastBooking, nextBooking,
+                commentRepository.findAllByItemId(item.getId()).stream()
+                        .map(CommentMapper::toCommentDto)
+                        .collect(Collectors.toList()));
     }
 
     private User userExistCheck(Long id) {
