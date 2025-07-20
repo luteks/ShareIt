@@ -56,7 +56,7 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemAllFieldsDto> findAll(Long userId) {
         userExistCheck(userId);
 
-        Collection<Item> items = itemRepository.findByOwnerId(userId);
+        Collection<Item> items = itemRepository.findByOwnerIdOrderById(userId);
         List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
         Map<Long, List<Booking>> bookingsMap = bookingRepository.findAllByItem_IdIn(itemIds).stream()
                 .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
