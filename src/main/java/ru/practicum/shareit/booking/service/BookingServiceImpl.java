@@ -11,6 +11,7 @@ import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.AccessDeniedException;
+import ru.practicum.shareit.exception.CommentCreationException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.ItemUnavailableException;
 import ru.practicum.shareit.item.model.Item;
@@ -52,7 +53,9 @@ public class BookingServiceImpl implements BookingService {
         Booking bookingUpdate = checkBookingExist(bookingId);
 
         checkBookingAccessForOwner(bookingUpdate, userId);
-        bookingUpdate.setStatus((approve && bookingUpdate.getStatus().equals(BookingStatus.WAITING)) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        checkBookingWaitingStatus(bookingUpdate.getStatus());
+
+        bookingUpdate.setStatus(approve ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         BookingDto bookingDto = BookingMapper.toBookingDto(bookingRepository.save(bookingUpdate), bookingUpdate.getBooker().getId());
 
         log.debug("Изменен статус бронирования {}", bookingDto);
@@ -61,8 +64,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto find(Long userId, Long bookingId) {
-        Booking booking = bookingRepository.findBookingWithGraphById(bookingId).orElseThrow(() ->
-                new EntityNotFoundException("Бронирование", bookingId));
+        Booking booking = checkBookingExist(bookingId);
 
         checkBookingAccessForUserOrOwner(booking, userId);
         BookingDto bookingDto = BookingMapper.toBookingDto(booking, booking.getBooker().getId());
@@ -147,6 +149,13 @@ public class BookingServiceImpl implements BookingService {
             log.error("Предмет с ID={} недоступен для бронирования", bookingCreateDto.getItemId());
             throw new ItemUnavailableException(String.format("Предмет с ID_%d недоступен для бронирования",
                     bookingCreateDto.getItemId()));
+        }
+    }
+
+    private void checkBookingWaitingStatus(BookingStatus bookingStatus) {
+        if (!bookingStatus.equals(BookingStatus.WAITING)) {
+            log.error("Статус комментария не ожидание подтверждения.");
+            throw new CommentCreationException("Статус комментария не ожидание подтверждения.");
         }
     }
 
