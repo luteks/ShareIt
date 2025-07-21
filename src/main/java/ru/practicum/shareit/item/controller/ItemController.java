@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemAllFieldsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.Marker;
@@ -37,8 +39,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto get(@PathVariable Long itemId,
-                       @RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ItemAllFieldsDto get(@PathVariable Long itemId,
+                                @RequestHeader("X-Sharer-User-Id") Long userId) {
         log.debug("Попытка поиска предмета {}.", itemId);
         return itemService.find(itemId);
     }
@@ -51,8 +53,16 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public Collection<ItemAllFieldsDto> getAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
         log.debug("Попытка поиска всех предметов.");
         return itemService.findAll(userId);
+    }
+
+    @PostMapping("{itemId}/comment")
+    public CommentDto create(@PathVariable Long itemId,
+                             @Valid @RequestBody CommentDto commentDto,
+                             @RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.debug("Попытка создания комментария к предмету {}.", itemId);
+        return itemService.createComment(itemId, userId, commentDto);
     }
 }

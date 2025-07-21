@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import ru.practicum.shareit.exception.AccessDeniedException;
-import ru.practicum.shareit.exception.DuplicateEmailException;
-import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.response.ApiError;
 import ru.practicum.shareit.response.ValidationErrorResponse;
 import ru.practicum.shareit.response.Violation;
@@ -22,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice(basePackages = {"ru.practicum.shareit.user.controller",
-        "ru.practicum.shareit.item.controller"})
+        "ru.practicum.shareit.item.controller", "ru.practicum.shareit.booking.controller"})
 public class ErrorHandler extends ResponseEntityExceptionHandler {
     //400
     @Override
@@ -41,6 +39,19 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ApiError handleValidationException(final ValidationException e) {
         return new ApiError(HttpStatus.BAD_REQUEST, "Ошибка валидации", e.getLocalizedMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ItemUnavailableException.class)
+    public ApiError handleItemUnavailableException(final ItemUnavailableException e) {
+        return new ApiError(HttpStatus.BAD_REQUEST, "Отказано в бронировании", e.getLocalizedMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(CommentCreationException.class)
+    public ApiError handleCommentCreationException(final CommentCreationException e) {
+        return new ApiError(HttpStatus.BAD_REQUEST, "Ошибка при добавлении комментария",
+                e.getLocalizedMessage());
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
