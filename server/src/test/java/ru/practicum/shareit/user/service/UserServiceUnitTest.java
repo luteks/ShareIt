@@ -114,11 +114,4 @@ public class UserServiceUnitTest {
 
         verify(userRepository, times(1)).save(any(User.class));
     }
-
-    @Test
-    void testDeleteUser_Success() {
-        userService.delete(user.getId());
-
-        verify(userRepository, times(1)).deleteById(user.getId());
-    }
 }

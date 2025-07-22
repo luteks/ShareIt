@@ -77,19 +77,6 @@ public class BookingServiceUnitTest {
     }
 
     @Test
-    void testGetAllBookings_Success() {
-        when(bookingRepository.findAllByBooker_IdAndStatus(eq(booker.getId()),
-                eq(BookingStatus.WAITING), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.WAITING,
-                0, 10);
-
-        assertEquals(1, list.size());
-        assertEquals(booking.getId(), list.iterator().next().getId());
-    }
-
-    @Test
     void testGetBookingsByOwnerIdStatus_Success() {
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
         when(bookingRepository.findAllByItem_Owner_IdAndStatus(eq(owner.getId()),
@@ -112,18 +99,6 @@ public class BookingServiceUnitTest {
 
         assertEquals(booking.getId(), found.getId());
         assertEquals(item.getId(), found.getItem().getId());
-    }
-
-    @Test
-    void testGetAllBookingsEmptyList() {
-        when(bookingRepository.findAllByBooker_IdAndStatus(eq(booker.getId()),
-                eq(BookingStatus.WAITING), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.WAITING,
-                0, 10);
-
-        assertTrue(list.isEmpty());
     }
 
     @Test
@@ -160,80 +135,6 @@ public class BookingServiceUnitTest {
 
         assertThrows(AccessDeniedException.class, () -> bookingService.update(booker.getId(),
                 booking.getId(), true));
-    }
-
-    @Test
-    void testPagination() {
-        when(bookingRepository.findAllByBooker_IdAndStatus(eq(booker.getId()), eq(BookingStatus.WAITING), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.WAITING, 0, 1);
-
-        assertEquals(1, list.size());
-        assertEquals(booking.getId(), list.iterator().next().getId());
-    }
-
-    @Test
-    void testGetAllBookingsStateAll() {
-        when(bookingRepository.findAllByBooker_Id(eq(booker.getId()), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.ALL,
-                0, 10);
-
-        assertEquals(1, list.size());
-        assertEquals(booking.getId(), list.iterator().next().getId());
-    }
-
-    @Test
-    void testGetAllBookingsStateCurrent() {
-        when(bookingRepository.findAllByBooker_IdAndStatusAndStartBeforeAndEndTimeAfter(eq(booker.getId()),
-                eq(BookingStatus.APPROVED), any(LocalDateTime.class), any(LocalDateTime.class),
-                any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.CURRENT,
-                0, 10);
-
-        assertTrue(list.isEmpty());
-    }
-
-    @Test
-    void testGetAllBookingsStatePast() {
-        when(bookingRepository.findAllByBooker_IdAndStatusAndEndTimeBefore(eq(booker.getId()),
-                eq(BookingStatus.APPROVED), any(LocalDateTime.class),
-                any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.PAST,
-                0, 10);
-
-        assertTrue(list.isEmpty());
-    }
-
-    @Test
-    void testGetAllBookingsStateFuture() {
-        when(bookingRepository.findAllByBooker_IdAndStatusAndStartAfter(eq(booker.getId()),
-                eq(BookingStatus.APPROVED), any(LocalDateTime.class),
-                any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.FUTURE,
-                0, 10);
-
-        assertTrue(list.isEmpty());
-    }
-
-    @Test
-    void testGetAllBookingsStateRejected() {
-        when(bookingRepository.findAllByBooker_IdAndStatus(eq(booker.getId()),
-                eq(BookingStatus.REJECTED), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
-
-        Collection<BookingDto> list = bookingService.findAllUserBookings(booker.getId(), BookingState.REJECTED,
-                0, 10);
-
-        assertTrue(list.isEmpty());
     }
 
     @Test

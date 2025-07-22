@@ -105,10 +105,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     private ItemRequest itemRequestExistCheck(Long id) {
-        return itemRequestRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Запрос вещи {} не найден.", id);
-                    return new EntityNotFoundException("Запрос вещи", id);
-                });
+        return itemRequestRepository.findById(id).orElseThrow(() -> {
+            log.error("Запрос вещи {} не найден.", id);
+            return new EntityNotFoundException("Запрос вещи", id);
+        });
     }
 }

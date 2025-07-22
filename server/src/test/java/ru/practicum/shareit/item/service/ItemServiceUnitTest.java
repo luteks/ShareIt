@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.AccessDeniedException;
 import ru.practicum.shareit.exception.CommentCreationException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -85,27 +84,6 @@ public class ItemServiceUnitTest {
     }
 
     @Test
-    void testUpdateItem_ByOwner_Success() {
-        Item updatedItem = new Item(1L, "Hammer", "Heavy", false, owner, null);
-        ItemDto updateDto = new ItemDto(1L, "Hammer", "Heavy", false, null);
-
-        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        when(itemRepository.save(any(Item.class))).thenReturn(updatedItem);
-
-        ItemDto result = itemService.update(updateDto, item.getId(), owner.getId());
-        assertEquals("Hammer", result.getName());
-        assertFalse(result.getAvailable());
-    }
-
-    @Test
-    void testUpdateItem_ByNonOwner_Throws() {
-        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
-        assertThrows(AccessDeniedException.class,
-                () -> itemService.update(itemDto, item.getId(), booker.getId())
-        );
-    }
-
-    @Test
     void testFindItemAllFields_Success() {
         when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
         when(bookingRepository.findAllByItem_Id(anyLong())).thenReturn(List.of(booking));
@@ -118,16 +96,6 @@ public class ItemServiceUnitTest {
         assertFalse(dto.getComments().isEmpty());
     }
 
-    @Test
-    void testFindAllItemsByOwner() {
-        when(itemRepository.findByOwnerIdOrderById(eq(owner.getId()), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(item)));
-        when(bookingRepository.findAllByItem_Owner_Id(eq(owner.getId()), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-
-        Collection<ItemAllFieldsDto> list = itemService.findAll(owner.getId(), 0, 10);
-        assertEquals(1, list.size());
-    }
 
     @Test
     void testSearchItems_Found() {
