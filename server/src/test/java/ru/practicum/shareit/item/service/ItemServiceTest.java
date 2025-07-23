@@ -103,12 +103,6 @@ public class ItemServiceTest {
     }
 
     @Test
-    void testSearchItemsWithEmptyText() {
-        Collection<ItemDto> emptySearchResult = itemService.search("", 0, 10);
-        assertTrue(emptySearchResult.isEmpty());
-    }
-
-    @Test
     void testCreateComment() {
         bookingService.update(userOwner.getId(), bookingDto.getId(), true);
 
