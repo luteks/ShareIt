@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.controller;
+package ru.practicum.shareit.itemRequest.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item_request.client.ItemRequestClient;
-import ru.practicum.shareit.item_request.dto.ItemRequestDto;
+import ru.practicum.shareit.itemRequest.client.ItemRequestClient;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
 import ru.practicum.shareit.validation.Marker;
 
 @Slf4j

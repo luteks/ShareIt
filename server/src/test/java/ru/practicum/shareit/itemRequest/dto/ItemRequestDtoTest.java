@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.dto;
+package ru.practicum.shareit.itemRequest.dto;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

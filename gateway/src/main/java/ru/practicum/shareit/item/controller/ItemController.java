@@ -13,6 +13,8 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.validation.Marker;
 
+import java.util.Collections;
+
 @Slf4j
 @RestController
 @Validated

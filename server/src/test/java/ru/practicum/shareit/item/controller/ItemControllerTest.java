@@ -13,7 +13,7 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemAllFieldsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.item_request.service.ItemRequestService;
+import ru.practicum.shareit.itemRequest.service.ItemRequestService;
 
 import java.util.List;
 

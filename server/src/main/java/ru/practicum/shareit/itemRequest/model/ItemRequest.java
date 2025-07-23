@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.model;
+package ru.practicum.shareit.itemRequest.model;
 
 import jakarta.persistence.*;
 import lombok.*;

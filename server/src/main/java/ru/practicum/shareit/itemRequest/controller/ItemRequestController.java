@@ -1,11 +1,11 @@
-package ru.practicum.shareit.item_request.controller;
+package ru.practicum.shareit.itemRequest.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item_request.dto.ItemRequestAllFieldsDto;
-import ru.practicum.shareit.item_request.dto.ItemRequestDto;
-import ru.practicum.shareit.item_request.service.ItemRequestService;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestAllFieldsDto;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
+import ru.practicum.shareit.itemRequest.service.ItemRequestService;
 
 import java.util.Collection;
 

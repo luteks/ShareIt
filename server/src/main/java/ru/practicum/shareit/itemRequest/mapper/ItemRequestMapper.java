@@ -1,10 +1,10 @@
-package ru.practicum.shareit.item_request.mapper;
+package ru.practicum.shareit.itemRequest.mapper;
 
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item_request.dto.ItemRequestAllFieldsDto;
-import ru.practicum.shareit.item_request.dto.ItemRequestDto;
-import ru.practicum.shareit.item_request.model.ItemRequest;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestAllFieldsDto;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
+import ru.practicum.shareit.itemRequest.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.service;
+package ru.practicum.shareit.itemRequest.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.item_request.dto.ItemRequestAllFieldsDto;
-import ru.practicum.shareit.item_request.dto.ItemRequestDto;
-import ru.practicum.shareit.item_request.mapper.ItemRequestMapper;
-import ru.practicum.shareit.item_request.model.ItemRequest;
-import ru.practicum.shareit.item_request.repository.ItemRequestRepository;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestAllFieldsDto;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
+import ru.practicum.shareit.itemRequest.mapper.ItemRequestMapper;
+import ru.practicum.shareit.itemRequest.model.ItemRequest;
+import ru.practicum.shareit.itemRequest.repository.ItemRequestRepository;
 import ru.practicum.shareit.request.Pagination;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;

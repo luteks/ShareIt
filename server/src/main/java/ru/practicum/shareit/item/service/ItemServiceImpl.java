@@ -21,7 +21,7 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.item_request.repository.ItemRequestRepository;
+import ru.practicum.shareit.itemRequest.repository.ItemRequestRepository;
 import ru.practicum.shareit.request.Pagination;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -119,10 +119,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> search(String text, Integer from, Integer size) {
-        if (text == null || text.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         PageRequest pageRequest = Pagination.makePageRequest(from, size);
         Page<Item> items = itemRepository.search(text, pageRequest);
         List<ItemDto> itemList = items.stream()

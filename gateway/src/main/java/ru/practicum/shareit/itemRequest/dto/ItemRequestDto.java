@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.dto;
+package ru.practicum.shareit.itemRequest.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Null;

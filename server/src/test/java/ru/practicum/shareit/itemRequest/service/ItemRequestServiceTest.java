@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item_request.service;
+package ru.practicum.shareit.itemRequest.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item_request.dto.ItemRequestAllFieldsDto;
-import ru.practicum.shareit.item_request.dto.ItemRequestDto;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestAllFieldsDto;
+import ru.practicum.shareit.itemRequest.dto.ItemRequestDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -74,7 +74,7 @@ public class ItemRequestServiceTest {
         ItemRequestDto created = itemRequestService.create(itemRequestDto, user.getId());
 
         var requestEntity = entityManager.find(
-                ru.practicum.shareit.item_request.model.ItemRequest.class, created.getId());
+                ru.practicum.shareit.itemRequest.model.ItemRequest.class, created.getId());
         var userEntity = entityManager.find(
                 ru.practicum.shareit.user.model.User.class, user.getId());
 
